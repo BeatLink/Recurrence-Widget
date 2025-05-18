@@ -1,5 +1,5 @@
 <div id=recurrenceWidget >
-    <header class="header">Recurrence</header>
+    <header id="header">Recurrence</header>
     <form id="recurrenceForm" name="recurrenceForm">
         
         <!--Repeat Enabled -->
@@ -29,25 +29,34 @@
         <fieldset id="weekFieldset">
             <legend>Weekdays</legend>
             <div>
-                <table>
-                    <tr>
-                        <td><input id="weekInputSU" type="checkbox" value="true"></td>
-                        <td><input id="weekInputMO" type="checkbox" value="true"></td>
-                        <td><input id="weekInputTU" type="checkbox" value="true"></td>
-                        <td><input id="weekInputWE" type="checkbox" value="true"></td>
-                        <td><input id="weekInputTH" type="checkbox" value="true"></td>
-                        <td><input id="weekInputFR" type="checkbox" value="true"></td>
-                        <td><input id="weekInputSA" type="checkbox" value="true"></td>
-                    </tr>
-                    <tr>
-                        <td><label for="weekInputSU">Sun</label></td>
-                        <td><label for="weekInputMO">Mon</label></td>
-                        <td><label for="weekInputTU">Tue</label></td>
-                        <td><label for="weekInputWE">Wed</label></td>
-                        <td><label for="weekInputTH">Thu</label></td>
-                        <td><label for="weekInputFR">Fri</label></td>
-                        <td><label for="weekdayInputSA">Sat</label></td>
-                </table>    
+                <div>
+                    <input id="weekInputSU" type="checkbox" value="true">
+                    <label for="weekInputSU">Sunday</label>
+                </div>
+                <div>
+                    <input id="weekInputMO" type="checkbox" value="true">
+                    <label for="weekInputMO">Monday</label>
+                </div>
+                <div>
+                    <input id="weekInputTU" type="checkbox" value="true">
+                    <label for="weekInputTU">Tuesday</label>
+                </div>
+                <div>
+                    <input id="weekInputWE" type="checkbox" value="true">
+                    <label for="weekInputWE">Wednesday</label>
+                </div>
+                <div>
+                    <input id="weekInputTH" type="checkbox" value="true">
+                    <label for="weekInputTH">Thursday</label>
+                </div>
+                <div>
+                    <input id="weekInputFR" type="checkbox" value="true">
+                    <label for="weekInputFR">Friday</label>
+                </div>
+                <div>
+                    <input id="weekInputSA" type="checkbox" value="true">
+                    <label for="weekdayInputSA">Saturday</label>
+                </div>
             </div>
         </fieldset>
 
@@ -283,4 +292,3 @@
 
     </script> 
 </div>
-
