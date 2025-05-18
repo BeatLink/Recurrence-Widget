@@ -1,5 +1,7 @@
 <div id=recurrenceWidget >
-    <header id="header">Recurrence</header>
+    <div id="header-div">
+    	<header id="header">Recurrence</header>
+    </div>
     <form id="recurrenceForm" name="recurrenceForm">
         
         <!--Repeat Enabled -->
@@ -210,8 +212,7 @@
                     }
                 }
             }
-            console.debug(string)
-            recurrenceDataInput.value = string;
+            recurrenceDataInput.value = string.replace(/;$/, ''); // Remove semicolon from end of string
         }
 
         function loadRecurrenceData(){
