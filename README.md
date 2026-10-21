@@ -3,6 +3,8 @@
 `<recurrence-input>` is a form field for editing an iCalendar recurrence rule (the `RRULE` property used by CalDAV),
 built as a framework-free web component on top of [rrule.js](https://github.com/jkbrzt/rrule).
 
+[Live demo](https://beatlink.github.io/Recurrence-Widget/) · [npm](https://www.npmjs.com/package/recurrence-input)
+
 It submits with its form like any other input. Its value is the rule without the `RRULE:` prefix, such as
 `FREQ=WEEKLY;BYDAY=MO,WE;COUNT=10`, or an empty string when the item does not repeat.
 
@@ -47,7 +49,7 @@ Its parts can be styled from the page with `::part(container)`, `::part(section)
 
 ## Demo
 
-`index.html` shows several example rules, the value each would submit and the next dates it produces. Serve the folder
+Try it at https://beatlink.github.io/Recurrence-Widget/. `index.html` shows several example rules, the value each would submit and the next dates it produces. Serve the folder
 and open it, for example with `python3 -m http.server`.
 
 ## License
