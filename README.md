@@ -1,1 +1,43 @@
-# Recurrence Widget
+# Recurrence Input
+
+`<recurrence-input>` is a form field for editing an iCalendar recurrence rule (the `RRULE` property used by CalDAV),
+built as a framework-free web component on top of [rrule.js](https://github.com/jkbrzt/rrule).
+
+It submits with its form like any other input. Its value is the rule without the `RRULE:` prefix, such as
+`FREQ=WEEKLY;BYDAY=MO,WE;COUNT=10`, or an empty string when the item does not repeat.
+
+## Features
+
+- Repeats every N seconds, minutes, hours, days, weeks, months or years.
+- Picks weekdays for weekly rules, and a weekday of the month (such as the last Friday) for monthly rules.
+- Ends never, after a number of repeats, or on a date.
+- Describes the rule in plain English below the form.
+- Keeps rule parts the form does not show (such as `BYMONTHDAY` or `BYSETPOS`), so editing a rule written by another
+  client never loses them.
+- Takes part in form submit, reset, disabled fieldsets and validation; a value it cannot read makes the form invalid.
+
+## Usage
+
+The element imports `rrule`, so the page needs an import map (or a bundler) that resolves it:
+
+```html
+<script type="importmap">
+    { "imports": { "rrule": "https://cdn.jsdelivr.net/npm/rrule@2.8.1/+esm" } }
+</script>
+<script type="module" src="recurrence-input.js"></script>
+
+<form method="post">
+    <recurrence-input name="rrule" value="FREQ=MONTHLY;BYDAY=-1FR"></recurrence-input>
+    <button>Save</button>
+</form>
+```
+
+The `value` attribute is the starting value and the form's reset value; the `value` property reads and sets the current
+one. The element fires `input` and `change` events as the rule is edited.
+
+Its parts can be styled from the page with `::part(container)`, `::part(section)`, `::part(input)`,
+`::part(enabled)` and `::part(summary)`.
+
+## Demo
+
+Serve the folder and open `index.html`, for example with `python3 -m http.server`.

@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Recurrence Input Demo</title>
+        <script type="importmap">
+            { "imports": { "rrule": "https://cdn.jsdelivr.net/npm/rrule@2.8.1/+esm" } }
+        </script>
+        <script type="module" src="recurrence-input.js"></script>
+    </head>
+    <body>
+        <form id="demo_form">
+            <recurrence-input name="rrule" value="FREQ=MONTHLY;BYDAY=-1FR;COUNT=6"></recurrence-input>
+            <button type="reset">Reset</button>
+        </form>
+        <p>Submitted value: <code id="demo_output"></code></p>
+        <script type="module">
+            const form = document.getElementById("demo_form");
+            const output = document.getElementById("demo_output");
+            const show_value = () => (output.textContent = new FormData(form).get("rrule"));
+            form.addEventListener("input", show_value);
+            form.addEventListener("reset", () => setTimeout(show_value));
+            customElements.whenDefined("recurrence-input").then(show_value);
+        </script>
+    </body>
+</html>
