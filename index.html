@@ -60,8 +60,16 @@
             .invalid { color: var(--error); }
             .paste_row { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
             .paste_row input { flex: 1; min-width: 0; padding: 0.4rem 0.5rem; font: 0.9rem ui-monospace, monospace; }
-            recurrence-input::part(section) { border: 1px solid var(--border); border-radius: 0.375rem; }
-            recurrence-input::part(summary) { color: var(--accent); }
+            recurrence-input input:not([type="checkbox"]), recurrence-input select {
+                padding: 0.2rem 0.35rem; border: 1px solid var(--border); border-radius: 0.3rem;
+                background: var(--background); color: var(--text); font: inherit; font-size: 0.9rem;
+            }
+            .recurrence-input__row-label { color: var(--muted); }
+            .recurrence-input__summary { color: var(--accent); }
+            .recurrence-input__weekday-input:checked + .recurrence-input__weekday-label { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+            .pill_theme .recurrence-input__row { padding: 0.5rem 0.75rem; border-radius: 999px; background: var(--background); }
+            .pill_theme .recurrence-input__weekday-label { border-radius: 999px; min-width: 2rem; }
+            .pill_theme .recurrence-input__summary { font-style: normal; font-weight: 600; }
         </style>
     </head>
     <body>
@@ -102,6 +110,21 @@
                 </form>
 
                 <form class="example">
+                    <h2>A time of day, and a yearly date</h2>
+                    <p>The second Sunday of March at 02:00, every year.</p>
+                    <recurrence-input name="rrule" value="FREQ=YEARLY;BYMONTH=3;BYDAY=2SU;BYHOUR=2;BYMINUTE=0"></recurrence-input>
+                </form>
+
+                <form class="example pill_theme">
+                    <h2>Styled by the page</h2>
+                    <p>
+                        The controls are ordinary page elements with <code>recurrence-input__*</code> classes, so this card restyles
+                        them with plain CSS; <code>weekday-format="narrow"</code> shortens the day names.
+                    </p>
+                    <recurrence-input name="rrule" weekday-format="narrow" value="FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR;BYHOUR=9;BYMINUTE=0"></recurrence-input>
+                </form>
+
+                <form class="example">
                     <h2>Paste a rule</h2>
                     <p>Load any rule, with or without the <code>RRULE:</code> prefix. Text that is not a rule makes the form invalid.</p>
                     <div class="paste_row">
@@ -115,11 +138,13 @@
 
         <script type="module">
             import { RRule } from "rrule";
+            import { parse_rule, to_rule_date, from_rule_date } from "./recurrence-input.js";
 
             // ===== Example setup ===========================================================================================================
 
-            const next_year = new Date().getUTCFullYear() + 1;
-            document.getElementById("last_friday_input").setAttribute("value", `FREQ=MONTHLY;BYDAY=-1FR;UNTIL=${next_year}1231T235959Z`);
+            const end_of_next_year = new Date(new Date().getFullYear() + 1, 11, 31, 23, 59);
+            const until_text = end_of_next_year.toISOString().replace(/[-:]/g, "").replace(/\.\d+/, "");
+            document.getElementById("last_friday_input").setAttribute("value", `FREQ=MONTHLY;BYDAY=-1FR;UNTIL=${until_text}`);
 
             const paste_text = document.getElementById("paste_text");
             const paste_input = document.getElementById("paste_input");
@@ -132,10 +157,10 @@
 
             // ===== Output ==================================================================================================================
 
-            // Returns up to five upcoming dates for a rule, counted from today.
+            // Returns up to five upcoming dates for a rule counted from now, reading its times as local clock times.
             const next_dates = (rule_text) => {
-                const rule = new RRule({ ...RRule.parseString(rule_text), dtstart: new Date() });
-                return rule.all((date, index) => index < 5);
+                const rule = new RRule({ ...parse_rule(rule_text), dtstart: to_rule_date(new Date(), "floating") });
+                return rule.all((date, index) => index < 5).map((date) => from_rule_date(date, "floating"));
             };
 
             // Shows the value a form would submit and the dates its rule produces.
@@ -164,7 +189,7 @@
                 }
                 if (value === "") return;
                 const list = document.createElement("ol");
-                const show_time = RRule.parseString(value).freq >= RRule.HOURLY;
+                const show_time = parse_rule(value).freq >= RRule.HOURLY || parse_rule(value).byhour !== undefined;
                 for (const date of next_dates(value)) {
                     const item = document.createElement("li");
                     item.textContent = date.toLocaleString(undefined, show_time ? { dateStyle: "full", timeStyle: "short" } : { dateStyle: "full" });

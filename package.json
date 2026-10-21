@@ -1,8 +1,16 @@
 {
     "name": "recurrence-input",
-    "version": "1.0.0",
-    "description": "A form-associated web component for editing iCalendar recurrence rules (RRULE), built on rrule.js",
-    "keywords": ["rrule", "recurrence", "icalendar", "caldav", "web-component", "custom-element", "form"],
+    "version": "2.0.0",
+    "description": "A web component form field and helpers for iCalendar recurrence rules (RRULE), built on rrule.js",
+    "keywords": [
+        "rrule",
+        "recurrence",
+        "icalendar",
+        "caldav",
+        "web-component",
+        "custom-element",
+        "form"
+    ],
     "author": "BeatLink",
     "license": "GPL-3.0-only",
     "homepage": "https://github.com/BeatLink/Recurrence-Widget#readme",
@@ -16,7 +24,9 @@
     "type": "module",
     "main": "recurrence-input.js",
     "exports": "./recurrence-input.js",
-    "files": ["recurrence-input.js"],
+    "files": [
+        "recurrence-input.js"
+    ],
     "dependencies": {
         "rrule": "^2.8.1"
     }
