@@ -1,7 +1,7 @@
 {
     "name": "recurrence-input",
-    "version": "2.0.1",
-    "description": "A web component form field and helpers for iCalendar recurrence rules (RRULE), built on rrule.js",
+    "version": "3.0.0",
+    "description": "A web component form field and helpers for iCalendar recurrence (RFC 5545 RRULE, EXDATE and RDATE), built on rrule.js",
     "keywords": [
         "rrule",
         "recurrence",

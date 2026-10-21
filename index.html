@@ -66,9 +66,9 @@
             }
             .recurrence-input__row-label { color: var(--muted); }
             .recurrence-input__summary { color: var(--accent); }
-            .recurrence-input__weekday-input:checked + .recurrence-input__weekday-label { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+            .recurrence-input__toggle-input:checked + .recurrence-input__toggle-label { background: var(--accent); border-color: var(--accent); color: var(--surface); }
             .pill_theme .recurrence-input__row { padding: 0.5rem 0.75rem; border-radius: 999px; background: var(--background); }
-            .pill_theme .recurrence-input__weekday-label { border-radius: 999px; min-width: 2rem; }
+            .pill_theme .recurrence-input__toggle-label { border-radius: 999px; min-width: 2rem; }
             .pill_theme .recurrence-input__summary { font-style: normal; font-weight: 600; }
         </style>
     </head>
@@ -78,7 +78,7 @@
             <p class="lead">
                 A form field for editing iCalendar recurrence rules, built on
                 <a href="https://github.com/jkbrzt/rrule">rrule.js</a>. Each example below shows the value the form would submit
-                and the next few dates the rule produces, counted from today.
+                and the next few dates it produces, counted from now; times are local clock times (<code>time-mode="floating"</code>).
                 <a href="https://github.com/BeatLink/Recurrence-Widget">Source and usage</a>.
             </p>
 
@@ -86,33 +86,55 @@
                 <form class="example">
                     <h2>A new rule</h2>
                     <p>Starts empty, meaning the item does not repeat.</p>
-                    <recurrence-input name="rrule"></recurrence-input>
+                    <recurrence-input name="rrule" time-mode="floating"></recurrence-input>
                 </form>
 
                 <form class="example">
                     <h2>Weekly on chosen days</h2>
                     <p>Every two weeks on Monday and Wednesday, ten times.</p>
-                    <recurrence-input name="rrule" value="FREQ=WEEKLY;INTERVAL=2;BYDAY=MO,WE;COUNT=10"></recurrence-input>
+                    <recurrence-input name="rrule" time-mode="floating" value="FREQ=WEEKLY;INTERVAL=2;BYDAY=MO,WE;COUNT=10"></recurrence-input>
                 </form>
 
                 <form class="example">
                     <h2>A weekday of the month</h2>
                     <p>The last Friday of every month, until the end of next year.</p>
-                    <recurrence-input name="rrule" id="last_friday_input"></recurrence-input>
+                    <recurrence-input name="rrule" time-mode="floating" id="last_friday_input"></recurrence-input>
                 </form>
 
                 <form class="example">
-                    <h2>Parts the form does not show</h2>
+                    <h2>The last weekday of the month</h2>
+                    <p>Every weekday, then only the last of them each month (<code>BYSETPOS=-1</code>).</p>
+                    <recurrence-input name="rrule" time-mode="floating" value="FREQ=MONTHLY;BYDAY=MO,TU,WE,TH,FR;BYSETPOS=-1"></recurrence-input>
+                </form>
+
+                <form class="example">
+                    <h2>Several times a day</h2>
+                    <p>Weekdays at 09:00 and 17:00; add or remove times with the buttons.</p>
+                    <recurrence-input name="rrule" time-mode="floating" value="FREQ=DAILY;BYDAY=MO,TU,WE,TH,FR;BYHOUR=9,17;BYMINUTE=0"></recurrence-input>
+                </form>
+
+                <form class="example">
+                    <h2>All-day, with skipped dates</h2>
                     <p>
-                        <code>BYMONTHDAY=15</code> has no control, but it is kept when you change the interval or the end.
+                        <code>all-day</code> writes dates without times, and <code>value-format="ical"</code> adds EXDATE and RDATE
+                        lines for dates to skip or add.
                     </p>
-                    <recurrence-input name="rrule" value="FREQ=MONTHLY;BYMONTHDAY=15"></recurrence-input>
+                    <recurrence-input name="rrule" time-mode="floating" all-day value-format="ical" id="all_day_input"></recurrence-input>
+                </form>
+
+                <form class="example">
+                    <h2>Kept as written</h2>
+                    <p>
+                        Parts the form cannot edit, such as <code>X-</code> names or an <code>RSCALE</code> calendar, are kept
+                        exactly as written; More options edits every standard part directly.
+                    </p>
+                    <recurrence-input name="rrule" time-mode="floating" value="FREQ=YEARLY;BYWEEKNO=1;BYDAY=MO;X-SOURCE=demo"></recurrence-input>
                 </form>
 
                 <form class="example">
                     <h2>A time of day, and a yearly date</h2>
                     <p>The second Sunday of March at 02:00, every year.</p>
-                    <recurrence-input name="rrule" value="FREQ=YEARLY;BYMONTH=3;BYDAY=2SU;BYHOUR=2;BYMINUTE=0"></recurrence-input>
+                    <recurrence-input name="rrule" time-mode="floating" value="FREQ=YEARLY;BYMONTH=3;BYDAY=2SU;BYHOUR=2;BYMINUTE=0"></recurrence-input>
                 </form>
 
                 <form class="example pill_theme">
@@ -121,7 +143,7 @@
                         The controls are ordinary page elements with <code>recurrence-input__*</code> classes, so this card restyles
                         them with plain CSS; <code>weekday-format="narrow"</code> shortens the day names.
                     </p>
-                    <recurrence-input name="rrule" weekday-format="narrow" value="FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR;BYHOUR=9;BYMINUTE=0"></recurrence-input>
+                    <recurrence-input name="rrule" time-mode="floating" weekday-format="narrow" value="FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR;BYHOUR=9;BYMINUTE=0"></recurrence-input>
                 </form>
 
                 <form class="example">
@@ -131,20 +153,19 @@
                         <input id="paste_text" type="text" value="RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=2SU" aria-label="Rule to load">
                         <button type="button" id="paste_button">Load</button>
                     </div>
-                    <recurrence-input name="rrule" id="paste_input"></recurrence-input>
+                    <recurrence-input name="rrule" time-mode="floating" id="paste_input"></recurrence-input>
                 </form>
             </div>
         </main>
 
         <script type="module">
-            import { RRule } from "rrule";
-            import { parse_rule, to_rule_date, from_rule_date } from "./recurrence-input.js";
+            import { next_from_now, next_occurrence } from "./recurrence-input.js";
 
             // ===== Example setup ===========================================================================================================
 
-            const end_of_next_year = new Date(new Date().getFullYear() + 1, 11, 31, 23, 59);
-            const until_text = end_of_next_year.toISOString().replace(/[-:]/g, "").replace(/\.\d+/, "");
-            document.getElementById("last_friday_input").setAttribute("value", `FREQ=MONTHLY;BYDAY=-1FR;UNTIL=${until_text}`);
+            const next_year = new Date().getFullYear() + 1;
+            document.getElementById("last_friday_input").setAttribute("value", `FREQ=MONTHLY;BYDAY=-1FR;UNTIL=${next_year}1231T235900`);
+            document.getElementById("all_day_input").setAttribute("value", `RRULE:FREQ=YEARLY;BYMONTH=12;BYMONTHDAY=25\nEXDATE;VALUE=DATE:${next_year}1225\nRDATE;VALUE=DATE:${next_year}0101`);
 
             const paste_text = document.getElementById("paste_text");
             const paste_input = document.getElementById("paste_input");
@@ -157,10 +178,18 @@
 
             // ===== Output ==================================================================================================================
 
-            // Returns up to five upcoming dates for a rule counted from now, reading its times as local clock times.
-            const next_dates = (rule_text) => {
-                const rule = new RRule({ ...parse_rule(rule_text), dtstart: to_rule_date(new Date(), "floating") });
-                return rule.all((date, index) => index < 5).map((date) => from_rule_date(date, "floating"));
+            // Returns up to five upcoming dates for a value counted from now, stepping with next_occurrence the way a task would.
+            const next_dates = (rule_text, format) => {
+                const dates = [];
+                let date = next_from_now(rule_text, format);
+                let text = rule_text;
+                while (date && dates.length < 5) {
+                    dates.push(date);
+                    const next = next_occurrence(text, date, format);
+                    date = next?.next_date;
+                    text = next?.rule;
+                }
+                return dates;
             };
 
             // Shows the value a form would submit and the dates its rule produces.
@@ -189,8 +218,15 @@
                 }
                 if (value === "") return;
                 const list = document.createElement("ol");
-                const show_time = parse_rule(value).freq >= RRule.HOURLY || parse_rule(value).byhour !== undefined;
-                for (const date of next_dates(value)) {
+                const show_time = !field.format.all_day && /FREQ=(HOURLY|MINUTELY|SECONDLY)|BYHOUR/.test(value);
+                let dates;
+                try {
+                    dates = next_dates(value, field.format);
+                } catch (error) {
+                    add_row("Next dates", error.message);
+                    return;
+                }
+                for (const date of dates) {
                     const item = document.createElement("li");
                     item.textContent = date.toLocaleString(undefined, show_time ? { dateStyle: "full", timeStyle: "short" } : { dateStyle: "full" });
                     list.append(item);
