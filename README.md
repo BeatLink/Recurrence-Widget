@@ -16,9 +16,16 @@ It submits with its form like any other input. Its value is the rule without the
   client never loses them.
 - Takes part in form submit, reset, disabled fieldsets and validation; a value it cannot read makes the form invalid.
 
+## Install
+
+```sh
+npm install recurrence-input
+```
+
 ## Usage
 
-The element imports `rrule`, so the page needs an import map (or a bundler) that resolves it:
+With a bundler, `import "recurrence-input";` defines the element. Without one, the page needs an import map that
+resolves `rrule`:
 
 ```html
 <script type="importmap">
@@ -40,4 +47,9 @@ Its parts can be styled from the page with `::part(container)`, `::part(section)
 
 ## Demo
 
-Serve the folder and open `index.html`, for example with `python3 -m http.server`.
+`index.html` shows several example rules, the value each would submit and the next dates it produces. Serve the folder
+and open it, for example with `python3 -m http.server`.
+
+## License
+
+GPL-3.0-only. See [LICENSE](LICENSE).

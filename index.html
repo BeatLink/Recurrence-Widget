@@ -8,20 +8,178 @@
             { "imports": { "rrule": "https://cdn.jsdelivr.net/npm/rrule@2.8.1/+esm" } }
         </script>
         <script type="module" src="recurrence-input.js"></script>
+        <style>
+            :root {
+                color-scheme: light dark;
+                --background: #f6f7f9;
+                --surface: #ffffff;
+                --text: #1d2330;
+                --muted: #5d6677;
+                --border: #d7dbe2;
+                --accent: #2f6fde;
+                --error: #c22f3c;
+            }
+            @media (prefers-color-scheme: dark) {
+                :root {
+                    --background: #14171d;
+                    --surface: #1d2129;
+                    --text: #e6e9ef;
+                    --muted: #9aa3b4;
+                    --border: #343a46;
+                    --accent: #7aa7ff;
+                    --error: #ff7b86;
+                }
+            }
+            * { box-sizing: border-box; }
+            body {
+                margin: 0;
+                padding: 2rem 1rem 4rem;
+                background: var(--background);
+                color: var(--text);
+                font: 16px/1.5 system-ui, sans-serif;
+            }
+            main { max-width: 64rem; margin: 0 auto; }
+            h1 { margin: 0 0 0.25rem; font-size: 1.8rem; }
+            h2 { margin: 0 0 0.25rem; font-size: 1.1rem; }
+            p { margin: 0 0 1rem; }
+            a { color: var(--accent); }
+            code { font: 0.9em ui-monospace, monospace; overflow-wrap: anywhere; }
+            .lead { color: var(--muted); max-width: 44rem; }
+            .examples { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 28rem), 1fr)); gap: 1rem; align-items: start; }
+            .example {
+                padding: 1rem 1.25rem;
+                background: var(--surface);
+                border: 1px solid var(--border);
+                border-radius: 0.5rem;
+            }
+            .example > p { color: var(--muted); font-size: 0.95rem; }
+            .output { margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--border); font-size: 0.9rem; }
+            .output dt { color: var(--muted); }
+            .output dd { margin: 0 0 0.5rem; }
+            .output ol { margin: 0; padding-left: 1.25rem; }
+            .invalid { color: var(--error); }
+            .paste_row { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+            .paste_row input { flex: 1; min-width: 0; padding: 0.4rem 0.5rem; font: 0.9rem ui-monospace, monospace; }
+            recurrence-input::part(section) { border: 1px solid var(--border); border-radius: 0.375rem; }
+            recurrence-input::part(summary) { color: var(--accent); }
+        </style>
     </head>
     <body>
-        <form id="demo_form">
-            <recurrence-input name="rrule" value="FREQ=MONTHLY;BYDAY=-1FR;COUNT=6"></recurrence-input>
-            <button type="reset">Reset</button>
-        </form>
-        <p>Submitted value: <code id="demo_output"></code></p>
+        <main>
+            <h1>&lt;recurrence-input&gt;</h1>
+            <p class="lead">
+                A form field for editing iCalendar recurrence rules, built on
+                <a href="https://github.com/jkbrzt/rrule">rrule.js</a>. Each example below shows the value the form would submit
+                and the next few dates the rule produces, counted from today.
+                <a href="https://github.com/BeatLink/Recurrence-Widget">Source and usage</a>.
+            </p>
+
+            <div class="examples">
+                <form class="example">
+                    <h2>A new rule</h2>
+                    <p>Starts empty, meaning the item does not repeat.</p>
+                    <recurrence-input name="rrule"></recurrence-input>
+                </form>
+
+                <form class="example">
+                    <h2>Weekly on chosen days</h2>
+                    <p>Every two weeks on Monday and Wednesday, ten times.</p>
+                    <recurrence-input name="rrule" value="FREQ=WEEKLY;INTERVAL=2;BYDAY=MO,WE;COUNT=10"></recurrence-input>
+                </form>
+
+                <form class="example">
+                    <h2>A weekday of the month</h2>
+                    <p>The last Friday of every month, until the end of next year.</p>
+                    <recurrence-input name="rrule" id="last_friday_input"></recurrence-input>
+                </form>
+
+                <form class="example">
+                    <h2>Parts the form does not show</h2>
+                    <p>
+                        <code>BYMONTHDAY=15</code> has no control, but it is kept when you change the interval or the end.
+                    </p>
+                    <recurrence-input name="rrule" value="FREQ=MONTHLY;BYMONTHDAY=15"></recurrence-input>
+                </form>
+
+                <form class="example">
+                    <h2>Paste a rule</h2>
+                    <p>Load any rule, with or without the <code>RRULE:</code> prefix. Text that is not a rule makes the form invalid.</p>
+                    <div class="paste_row">
+                        <input id="paste_text" type="text" value="RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=2SU" aria-label="Rule to load">
+                        <button type="button" id="paste_button">Load</button>
+                    </div>
+                    <recurrence-input name="rrule" id="paste_input"></recurrence-input>
+                </form>
+            </div>
+        </main>
+
         <script type="module">
-            const form = document.getElementById("demo_form");
-            const output = document.getElementById("demo_output");
-            const show_value = () => (output.textContent = new FormData(form).get("rrule"));
-            form.addEventListener("input", show_value);
-            form.addEventListener("reset", () => setTimeout(show_value));
-            customElements.whenDefined("recurrence-input").then(show_value);
+            import { RRule } from "rrule";
+
+            // ===== Example setup ===========================================================================================================
+
+            const next_year = new Date().getUTCFullYear() + 1;
+            document.getElementById("last_friday_input").setAttribute("value", `FREQ=MONTHLY;BYDAY=-1FR;UNTIL=${next_year}1231T235959Z`);
+
+            const paste_text = document.getElementById("paste_text");
+            const paste_input = document.getElementById("paste_input");
+            const load_pasted_rule = () => {
+                paste_input.value = paste_text.value;
+                show_output(paste_input.closest("form"));
+            };
+            document.getElementById("paste_button").addEventListener("click", load_pasted_rule);
+            paste_text.addEventListener("keydown", (event) => event.key === "Enter" && (event.preventDefault(), load_pasted_rule()));
+
+            // ===== Output ==================================================================================================================
+
+            // Returns up to five upcoming dates for a rule, counted from today.
+            const next_dates = (rule_text) => {
+                const rule = new RRule({ ...RRule.parseString(rule_text), dtstart: new Date() });
+                return rule.all((date, index) => index < 5);
+            };
+
+            // Shows the value a form would submit and the dates its rule produces.
+            const show_output = (form) => {
+                const field = form.querySelector("recurrence-input");
+                const value = new FormData(form).get("rrule");
+                const output = form.querySelector(".output") ?? form.appendChild(document.createElement("dl"));
+                output.className = "output";
+                output.replaceChildren();
+                const add_row = (term, ...details) => {
+                    const term_element = document.createElement("dt");
+                    term_element.textContent = term;
+                    const detail_element = document.createElement("dd");
+                    detail_element.append(...details);
+                    output.append(term_element, detail_element);
+                };
+                const value_code = document.createElement("code");
+                value_code.textContent = value === "" ? '""  (does not repeat)' : value;
+                add_row("Submitted value", value_code);
+                if (!field.checkValidity()) {
+                    const message = document.createElement("span");
+                    message.className = "invalid";
+                    message.textContent = field.validationMessage;
+                    add_row("Invalid", message);
+                    return;
+                }
+                if (value === "") return;
+                const list = document.createElement("ol");
+                const show_time = RRule.parseString(value).freq >= RRule.HOURLY;
+                for (const date of next_dates(value)) {
+                    const item = document.createElement("li");
+                    item.textContent = date.toLocaleString(undefined, show_time ? { dateStyle: "full", timeStyle: "short" } : { dateStyle: "full" });
+                    list.append(item);
+                }
+                add_row("Next dates", list.children.length > 0 ? list : "None left");
+            };
+
+            await customElements.whenDefined("recurrence-input");
+            for (const form of document.querySelectorAll("form.example")) {
+                form.addEventListener("input", () => show_output(form));
+                form.addEventListener("submit", (event) => event.preventDefault());
+            }
+            load_pasted_rule();
+            for (const form of document.querySelectorAll("form.example")) show_output(form);
         </script>
     </body>
 </html>
