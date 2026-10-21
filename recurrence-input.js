@@ -102,9 +102,11 @@ export function next_occurrence(rule_text, start_date, time_mode = "utc") {
     return { next_date: from_rule_date(next_date, time_mode), rule: format_rule(options) };
 }
 
-// Returns the first occurrence from now onwards for a rule counted from now, or null when it yields none.
+// Returns the first occurrence from the current minute onwards for a rule counted from then, or null when it yields none.
 export function next_from_now(rule_text, time_mode = "utc") {
-    const now = to_rule_date(new Date(), time_mode);
+    const this_minute = new Date();
+    this_minute.setSeconds(0, 0);
+    const now = to_rule_date(this_minute, time_mode);
     const next_date = new RRule({ ...parse_rule(rule_text), dtstart: now }).after(now, true);
     return next_date ? from_rule_date(next_date, time_mode) : null;
 }

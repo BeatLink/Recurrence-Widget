@@ -82,7 +82,7 @@ for the attribute.
 | `format_rule(options)` | The rule value for rrule options. |
 | `describe_rule(rule, time_mode)` | The rule in plain English, or `""`. |
 | `next_occurrence(rule, start_date, time_mode)` | `{ next_date, rule }`: the occurrence after `start_date`, and the rule to keep, with `COUNT` lowered by one; `null` once it has ended. |
-| `next_from_now(rule, time_mode)` | The first occurrence from now, counting the rule from now, or `null`. |
+| `next_from_now(rule, time_mode)` | The first occurrence from the current minute, counting the rule from then, or `null`. |
 | `to_rule_date(date, time_mode)`, `from_rule_date(date, time_mode)` | A date converted to and from the form rrule works with. |
 
 They need no DOM, so they also work in Node.
