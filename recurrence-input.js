@@ -59,6 +59,24 @@ const list_parts = {
     bysetpos: { label: "BYSETPOS", minimum: 1, maximum: 366, signed: true },
 };
 
+const feature_presets = {
+    simple: [],
+    standard: ["times", "month-days", "weekday-entries", "months", "set-position", "filters", "sub-daily", "exdates"],
+};
+feature_presets.full = [...feature_presets.standard, "more-options"];
+
+// Reads a features attribute: presets and feature names add, names starting with "-" remove, and nothing given means standard.
+function read_features(text) {
+    const features = new Set();
+    const tokens = (text ?? "").split(/[\s,]+/).filter(Boolean);
+    for (const token of tokens.length > 0 ? tokens : ["standard"]) {
+        const name = token.replace(/^[-+]/, "").toLowerCase();
+        const names = feature_presets[name] ?? [name];
+        for (const feature of names) token.startsWith("-") ? features.delete(feature) : features.add(feature);
+    }
+    return features;
+}
+
 const time_of_day_frequencies = ["DAILY", "WEEKLY", "MONTHLY", "YEARLY"];
 const day_of_month_frequencies = ["MONTHLY", "YEARLY"];
 const sub_daily_frequencies = ["HOURLY", "MINUTELY", "SECONDLY"];
@@ -498,7 +516,7 @@ function element_markup(id_prefix, weekday_format) {
 function create_element_class() {
     return class RecurrenceInput extends HTMLElement {
         static formAssociated = true;
-        static observedAttributes = ["value", "time-mode", "all-day", "value-format", "start", "input-class", "select-class", "button-class", "toggle-class", "toggle-input-class"];
+        static observedAttributes = ["value", "features", "time-mode", "all-day", "value-format", "start", "input-class", "select-class", "button-class", "toggle-class", "toggle-input-class"];
 
         #internals = this.attachInternals();
         #controls = null;
@@ -528,7 +546,7 @@ function create_element_class() {
                 if (!this.#value_is_dirty) this.#load_value(new_value ?? "");
             } else if (this.#controls) {
                 this.#apply_host_classes();
-                this.#load_value(this.#value);
+                this.#load_value(this.#value_is_dirty ? this.#value : (this.getAttribute("value") ?? ""));
             }
         }
 
@@ -541,6 +559,10 @@ function create_element_class() {
         set value(new_value) {
             this.#value_is_dirty = true;
             this.#load_value(String(new_value ?? ""));
+        }
+
+        get features() {
+            return read_features(this.getAttribute("features"));
         }
 
         get format() {
@@ -742,11 +764,12 @@ function create_element_class() {
             else if (control === "weekday") {
                 set_list(options, "byweekday", controls.weekdays.filter((checkbox) => checkbox.checked).map((checkbox) => RRule[checkbox.value]));
             } else if (control === "month") {
+                if (!this.features.has("months") && target.checked) for (const checkbox of controls.months) checkbox.checked = checkbox === target;
                 const months = controls.months.filter((checkbox) => checkbox.checked).map((checkbox) => Number(checkbox.value));
                 if (months.length === 0 && this.#needs_month(true)) target.checked = true;
                 else set_list(options, "bymonth", months);
             } else if (control === "day_mode") this.#set_day_mode(target.value);
-            else if (control === "month_days") this.#apply_list_text(target, "bymonthday");
+            else if (control === "month_days") this.#apply_list_text(target, "bymonthday", this.features.has("month-days") ? 0 : 1);
             else if (control === "entry_ordinal" || control === "entry_weekday") this.#read_entries();
             else if (control === "set_position") set_list(options, "bysetpos", target.value === "" ? [] : [Number(target.value)]);
             else if (control === "time") this.#read_times(target);
@@ -830,10 +853,11 @@ function create_element_class() {
             return RRule.FREQUENCIES[options.freq] === "YEARLY" && has_day_pattern && !has_period;
         }
 
-        // Reads a typed list into one BY part, or marks the field when it holds something that part does not allow.
-        #apply_list_text(target, part) {
+        // Reads a typed list into one BY part, or marks the field when it holds something that part does not allow or more than limit values.
+        #apply_list_text(target, part, limit = 0) {
             try {
                 const values = parse_part_list(part, target.value);
+                if (limit && values.length > limit) throw new Error("Enter a single day of the month.");
                 const frequency = RRule.FREQUENCIES[this.#state.options.freq];
                 if (part === "byweekday" && values.some((entry) => entry.n) && !day_of_month_frequencies.includes(frequency)) {
                     throw new Error("Numbered weekdays such as -1FR only work in monthly and yearly rules.");
@@ -977,8 +1001,10 @@ function create_element_class() {
             const has_days = Boolean(options.bymonthday?.length);
             const has_weekdays = Boolean(weekdays.length);
             set_value(controls.day_mode, has_days && has_weekdays ? "both" : has_days ? "days" : has_weekdays ? "weekdays" : "start");
-            set_value(controls.month_days, (options.bymonthday ?? []).join(", "));
-            const entry_items = this.#sync_list("entries", day_of_month_frequencies.includes(frequency) ? weekdays.length : 0);
+            const features = this.features;
+            set_value(controls.month_days, (options.bymonthday ?? []).slice(0, features.has("month-days") ? undefined : 1).join(", "));
+            const entry_count = day_of_month_frequencies.includes(frequency) ? weekdays.length : 0;
+            const entry_items = this.#sync_list("entries", features.has("weekday-entries") ? entry_count : Math.min(entry_count, 1));
             entry_items.forEach((item, index) => {
                 const ordinal_select = item.querySelector('[data-control="entry_ordinal"]');
                 const ordinal = String(weekdays[index].n ?? "");
@@ -996,7 +1022,8 @@ function create_element_class() {
                 const hours = options.byhour ?? [];
                 const minutes = options.byminute ?? [0];
                 const times = hours.flatMap((hour) => minutes.map((minute) => `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`)).sort();
-                this.#sync_list("times", times.length).forEach((item, index) => (item.querySelector("input").value = times[index]));
+                const time_count = features.has("times") ? times.length : 1;
+                this.#sync_list("times", time_count).forEach((item, index) => (item.querySelector("input").value = times[index] ?? ""));
             }
             set_value(controls.hour_minutes, (options.byminute ?? []).join(", "));
             set_value(controls.minute_seconds, (options.bysecond ?? []).join(", "));
@@ -1029,24 +1056,30 @@ function create_element_class() {
             const day_mode = controls.day_mode.value;
             const is_monthly_or_yearly = day_of_month_frequencies.includes(frequency);
             const with_dates = this.getAttribute("value-format") === "ical";
+            const features = this.features;
             const show = (section, visible) => (sections[section].hidden = !enabled || !visible);
             show("repeat", true);
-            show("weekdays", !is_monthly_or_yearly);
+            show("weekdays", frequency === "WEEKLY" || (!is_monthly_or_yearly && features.has("filters")));
             sections.weekdays.querySelector(".recurrence-input__row-label").textContent = frequency === "WEEKLY" ? "On" : "Only on";
             show("months", frequency === "YEARLY");
             show("month_days", is_monthly_or_yearly);
-            show("set_position", is_monthly_or_yearly && day_mode !== "start");
+            show("set_position", is_monthly_or_yearly && day_mode !== "start" && features.has("set-position"));
             show("times", time_of_day_frequencies.includes(frequency) && !all_day);
-            show("hour_minutes", frequency === "HOURLY" && !all_day);
-            show("minute_seconds", frequency === "MINUTELY" && !all_day);
+            show("hour_minutes", frequency === "HOURLY" && !all_day && features.has("sub-daily"));
+            show("minute_seconds", frequency === "MINUTELY" && !all_day && features.has("sub-daily"));
             show("end", true);
-            show("exdates", with_dates);
-            show("rdates", with_dates);
-            show("more", true);
-            for (const option of controls.frequency.options) option.hidden = all_day && sub_daily_frequencies.includes(option.value);
+            show("exdates", with_dates && features.has("exdates"));
+            show("rdates", with_dates && features.has("exdates"));
+            show("more", features.has("more-options"));
+            for (const option of controls.frequency.options) {
+                option.hidden = sub_daily_frequencies.includes(option.value) && (all_day || !features.has("sub-daily")) && option.value !== frequency;
+            }
+            controls.day_mode.querySelector('[value="both"]').hidden = !features.has("month-days") || !features.has("weekday-entries");
+            for (const button of this.querySelectorAll('[data-action="add_time"], [data-action="remove_time"]')) button.hidden = !features.has("times");
+            for (const button of this.querySelectorAll('[data-action="remove_entry"]')) button.hidden = !features.has("weekday-entries");
             controls.month_days.hidden = day_mode !== "days" && day_mode !== "both";
             controls.lists.entries.hidden = day_mode !== "weekdays" && day_mode !== "both";
-            this.querySelector('[data-action="add_entry"]').hidden = controls.lists.entries.hidden;
+            this.querySelector('[data-action="add_entry"]').hidden = controls.lists.entries.hidden || !features.has("weekday-entries");
             controls.end_count.hidden = controls.end_type.value !== "count";
             controls.end_date.hidden = controls.end_type.value !== "until";
             const part_allowed = {

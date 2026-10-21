@@ -19,7 +19,8 @@ value is the `RRULE`, `EXDATE` and `RDATE` lines together.
     Monday", "the last Friday"), or both (Friday the 13th), and "only the last of those" (`BYSETPOS`);
   - for yearly rules, the months, defaulting to the start's month so a day pattern never silently means every month;
   - ending never, after a number of times, or on a date.
-- **More options** edits every `BY` part directly (`BYMONTH`, `BYWEEKNO`, `BYYEARDAY`, `BYMONTHDAY`, `BYDAY`, `BYHOUR`,
+- The `features` attribute shows as little or as much of this as a page needs, from `simple` to `full`.
+- **More options** (in `full`) edits every `BY` part directly (`BYMONTH`, `BYWEEKNO`, `BYYEARDAY`, `BYMONTHDAY`, `BYDAY`, `BYHOUR`,
   `BYMINUTE`, `BYSECOND`, `BYSETPOS`) and `WKST`, checking each against the ranges and frequencies the RFC allows.
 - Dates to skip (`EXDATE`) and add (`RDATE`) with `value-format="ical"`.
 - `UNTIL` and the extra dates match the event's start: plain dates for `all-day`, no `Z` for `time-mode="floating"`,
@@ -63,6 +64,7 @@ one. The element fires `input` and `change` events as the rule is edited.
 | Attribute | Meaning |
 | --- | --- |
 | `name`, `value` | As on any form field. |
+| `features` | How much of the form to show: `simple`, `standard` (default) or `full`, then feature names to add, or remove with a leading `-`, such as `standard -sub-daily` or `simple times`. See [Features to show](#features-to-show). |
 | `value-format` | `rrule` (default): the value is one rule. `ical`: the value is `RRULE`, `EXDATE` and `RDATE` lines, and the form shows dates to skip and add. |
 | `time-mode` | `utc` (default): dates are real moments, written in UTC with a `Z`. `floating`: dates are local clock times written without a `Z`, for an event whose start has no time zone; they stay fixed across daylight-saving changes. |
 | `all-day` | The event's start is a date without a time: dates are written as plain dates, and times of day are hidden. |
@@ -70,6 +72,24 @@ one. The element fires `input` and `change` events as the rule is edited.
 | `weekday-format` | `short` (default, "Mon"), `narrow` ("M") or `long` ("Monday") for the weekday toggles. |
 | `input-class`, `select-class`, `button-class` | Extra classes for the inputs, the drop-downs and the add and remove buttons, such as Bootstrap's `form-control`, `form-select` and `btn`. |
 | `toggle-class`, `toggle-input-class` | Extra classes for the weekday and month toggle labels and their checkboxes, such as Bootstrap's `btn btn-primary` and `btn-check`. |
+
+### Features to show
+
+| Feature | Adds |
+| --- | --- |
+| `times` | Several times of day; without it there is one time input. |
+| `month-days` | Several days of the month; without it there is one. |
+| `weekday-entries` | Several weekday entries ("every Monday", "the last Friday") and "days that fall on certain weekdays"; without it there is one entry. |
+| `months` | Several months for yearly rules; without it picking a month replaces the last one. |
+| `set-position` | "Only the last of those" (`BYSETPOS`). |
+| `filters` | "Only on" weekdays for daily and shorter rules. |
+| `sub-daily` | Hourly, minutely and secondly rules, with minutes or seconds past. |
+| `exdates` | Dates to skip and add, with `value-format="ical"`. |
+| `more-options` | The More options section, editing every `BY` part and `WKST` directly. |
+
+`simple` has none of these, `standard` has all but `more-options`, and `full` has all of them. Hiding a feature never
+changes a rule: parts it would edit are kept, and the description still includes them. Where a hidden feature leaves a
+single control, such as one time, that control shows the first value, and editing it replaces the whole part.
 
 ## Styling
 

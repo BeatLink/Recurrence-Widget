@@ -85,7 +85,7 @@
             <div class="examples">
                 <form class="example">
                     <h2>A new rule</h2>
-                    <p>Starts empty, meaning the item does not repeat.</p>
+                    <p>Starts empty, meaning the item does not repeat. This uses the default, <code>features="standard"</code>.</p>
                     <recurrence-input name="rrule" time-mode="floating"></recurrence-input>
                 </form>
 
@@ -123,12 +123,21 @@
                 </form>
 
                 <form class="example">
+                    <h2>The simple form</h2>
+                    <p>
+                        <code>features="simple"</code> shows one time, one day pattern and no extras. The second time and the
+                        weekday filter in this rule are hidden but kept, and the description still includes them.
+                    </p>
+                    <recurrence-input name="rrule" time-mode="floating" features="simple" value="FREQ=DAILY;BYDAY=MO,TU,WE,TH,FR;BYHOUR=9,17;BYMINUTE=0"></recurrence-input>
+                </form>
+
+                <form class="example">
                     <h2>Kept as written</h2>
                     <p>
                         Parts the form cannot edit, such as <code>X-</code> names or an <code>RSCALE</code> calendar, are kept
-                        exactly as written; More options edits every standard part directly.
+                        exactly as written. <code>features="full"</code> adds More options, which edits every standard part directly.
                     </p>
-                    <recurrence-input name="rrule" time-mode="floating" value="FREQ=YEARLY;BYWEEKNO=1;BYDAY=MO;X-SOURCE=demo"></recurrence-input>
+                    <recurrence-input name="rrule" time-mode="floating" features="full" value="FREQ=YEARLY;BYWEEKNO=1;BYDAY=MO;X-SOURCE=demo"></recurrence-input>
                 </form>
 
                 <form class="example">
